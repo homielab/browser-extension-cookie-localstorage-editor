@@ -1,7 +1,7 @@
 # Chrome Web Store listing
 
 Everything the developer dashboard asks for, ready to paste, and the images to
-upload. The package itself comes from `npm run build`
+upload. The package itself comes from `bun run build`
 (`dist/<name>-<version>.zip`; see [CONTRIBUTING.md](../CONTRIBUTING.md#releasing)).
 
 ## Store listing

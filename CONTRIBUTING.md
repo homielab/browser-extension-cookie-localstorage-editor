@@ -14,13 +14,13 @@ The extension is the files in `src/` and runs unbuilt; the build only minifies
 for release. Load `src/` unpacked as described in the [README](README.md#installing).
 
 ```
-npm install           # dev tools: jsdom, esbuild, fflate, ESLint, Prettier
-npm test              # unit tests, plus the popup's DOM tests in jsdom
-npm run lint          # ESLint, then Prettier in check mode
-npm run test:dist     # builds dist/ and reruns the DOM tests on the minified popup
+bun install           # dev tools: jsdom, esbuild, fflate, ESLint, Prettier
+bun test              # unit tests, plus the popup's DOM tests in jsdom
+bun run lint          # ESLint, then Prettier in check mode
+bun run test:dist     # builds dist/ and reruns the DOM tests on the minified popup
 ```
 
-`npm run lint:fix` applies every automatic fix and `npm run format` only
+`bun run lint:fix` applies every automatic fix and `bun run format` only
 reformats. Prettier owns the layout (`.prettierrc.json`: 120 columns, double
 quotes); ESLint (`eslint.config.mjs`) checks the code and leaves layout alone.
 
@@ -76,7 +76,7 @@ schemes, public suffixes) and a mock page whose `localStorage` has a quota.
   open) and scrolls.
 - **No dependencies in shipped code.** The extension must run from `src/` as is,
   with nothing fetched at runtime. The build may only shrink files, never change
-  what they do; `npm run test:dist` holds it to that.
+  what they do; `bun run test:dist` holds it to that.
 
 Comments should explain _why_, not restate the code.
 
@@ -84,14 +84,14 @@ Comments should explain _why_, not restate the code.
 
 1. Bump `version` in `src/manifest.json` and `package.json` (the build checks
    they match), and move `[Unreleased]` in `CHANGELOG.md` under the new version.
-2. `npm run test:dist`. The build writes `dist/<name>-<version>/` (loadable
+2. `bun run test:dist`. The build writes `dist/<name>-<version>/` (loadable
    unpacked, to try the exact build) and the `.zip` to upload. It stops if the
    manifest breaks a store rule, a referenced file is missing, or the package
    goes over 2 MiB; the zip is reproducible. `--no-minify` helps debug it.
 3. Upload the zip to the Chrome Web Store; listing copy, permission
    justifications and images are in [store/](store/README.md).
 
-After a UI change, regenerate the store images: `npm run icons` redraws the
-icons and promo tiles, and `npm run screenshots -- <captures-dir> <out-dir>`
+After a UI change, regenerate the store images: `bun run icons` redraws the
+icons and promo tiles, and `bun run screenshots -- <captures-dir> <out-dir>`
 frames popup captures as 1280x800 screenshots. Both need Pillow
 (`python3 -m pip install pillow`).

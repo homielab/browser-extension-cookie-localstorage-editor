@@ -9,7 +9,7 @@
  * minified on its own rather than bundled, so the scripts keep sharing their
  * globals (`CookieUtils`, `Api`) exactly as they do when loaded from src/.
  *
- * Usage:  npm run build
+ * Usage:  bun run build
  *         node tools/build.mjs --out ~/Desktop   # somewhere other than dist/
  *         node tools/build.mjs --no-minify       # readable output, for debugging
  */
@@ -17,8 +17,8 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 import { transform } from "esbuild";
 import { zipSync } from "fflate";
@@ -85,7 +85,7 @@ function checkManifest(manifest) {
 }
 
 /**
- * Version in package.json, which `npm version` bumps, must match the manifest.
+ * Version in package.json, which `bun version` bumps, must match the manifest.
  * @returns {object} package.json, whose name the build output is named after
  */
 function checkVersions(manifest) {

@@ -3,17 +3,17 @@
  * that follows the real store's rules (suffix matching, path scoping, Secure
  * scheme, public suffixes, and the reject-then-restore dance on replace).
  *
- *   npm install jsdom && node --test test/
+ *   bun install jsdom && node --test test/
  *
  * The pure cookie logic is covered by cookies.test.js, which needs no
- * dependencies; these DOM tests need jsdom (`npm install`).
+ * dependencies; these DOM tests need jsdom (`bun install`).
  */
 const test = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 
-// POPUP_DIR points the suite at a build instead (see `npm run test:dist`).
+// POPUP_DIR points the suite at a build instead (see `bun run test:dist`).
 const POPUP_DIR = process.env.POPUP_DIR
   ? path.resolve(process.env.POPUP_DIR)
   : path.join(__dirname, "..", "src", "popup");
