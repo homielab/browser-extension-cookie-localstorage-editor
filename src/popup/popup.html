@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="../icons/icon-32.png" />
+    <title>Cookie & LocalStorage Editor by HomieLab</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24">
+        <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1M20.5 4v5h-5" />
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24">
+        <path
+          d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M10 11v6M14 11v6"
+        />
+      </symbol>
+      <symbol id="i-pencil" viewBox="0 0 24 24">
+        <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <path
+          d="M9 9h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2ZM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+        />
+      </symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="M11 18.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15ZM20.5 20.5l-4.2-4.2" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24">
+        <path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4.5M12 17h.01" />
+      </symbol>
+      <symbol id="i-transfer" viewBox="0 0 24 24">
+        <path d="M8 3v13M8 16l-3-3M8 16l3-3M16 21V8M16 8l-3 3M16 8l3 3" />
+      </symbol>
+      <symbol id="i-braces" viewBox="0 0 24 24">
+        <path
+          d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"
+        />
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path d="M12 3v12M12 15l-4-4M12 15l4-4M4 19h16" />
+      </symbol>
+      <symbol id="i-home" viewBox="0 0 24 24">
+        <path d="M3 11l9-8 9 8M5 9.5V20h5v-6h4v6h5V9.5" />
+      </symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24">
+        <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
+      </symbol>
+    </svg>
+
+    <header class="bar">
+      <img class="bar-logo" src="../icons/icon-32.png" width="22" height="22" alt="" />
+      <!-- Keeps the host from being pushed around by the action buttons. -->
+      <div class="bar-text">
+        <h1 class="bar-host" id="host">&nbsp;</h1>
+        <p class="bar-sub" id="host-sub"></p>
+      </div>
+      <button type="button" class="icon-btn" id="refresh" title="Reload" aria-label="Reload">
+        <svg class="icon"><use href="#i-refresh" /></svg>
+      </button>
+      <a
+        class="icon-btn"
+        href="https://homielab.com"
+        target="_blank"
+        rel="noopener"
+        title="HomieLab homepage"
+        aria-label="Open HomieLab homepage"
+      >
+        <svg class="icon"><use href="#i-home" /></svg>
+      </a>
+      <a
+        class="icon-btn donate"
+        href="https://ko-fi.com/homielab"
+        target="_blank"
+        rel="noopener"
+        title="Support HomieLab on Ko-fi"
+        aria-label="Donate on Ko-fi"
+      >
+        <svg class="icon"><use href="#i-heart" /></svg>
+      </a>
+      <button type="button" class="btn danger" id="delete-all">Delete all</button>
+    </header>
+
+    <nav class="views" role="tablist" aria-label="What to edit">
+      <button
+        type="button"
+        class="view-tab"
+        role="tab"
+        id="view-tab-cookies"
+        data-view="cookies"
+        aria-controls="view-cookies"
+        aria-selected="true"
+        title="Cookies (1)"
+      >
+        Cookies <span class="view-count" id="count-cookies"></span>
+      </button>
+      <button
+        type="button"
+        class="view-tab"
+        role="tab"
+        id="view-tab-storage"
+        data-view="storage"
+        aria-controls="view-storage"
+        aria-selected="false"
+        title="Local storage (2)"
+      >
+        Local storage <span class="view-count" id="count-storage"></span>
+      </button>
+    </nav>
+
+    <div class="notice" id="notice" role="status" aria-live="polite" title="Click to dismiss" hidden></div>
+
+    <div class="confirm" id="confirm" role="alertdialog" aria-labelledby="confirm-text" hidden>
+      <svg class="icon"><use href="#i-alert" /></svg>
+      <p id="confirm-text"></p>
+      <button type="button" class="btn ghost" id="confirm-cancel">Cancel</button>
+      <button type="button" class="btn danger" id="confirm-ok">Delete</button>
+    </div>
+
+    <section class="view" id="view-cookies" role="tabpanel" aria-labelledby="view-tab-cookies">
+      <div class="toolbar">
+        <div class="search">
+          <svg class="icon"><use href="#i-search" /></svg>
+          <input
+            id="filter"
+            type="search"
+            placeholder="Filter by name, value or domain"
+            aria-label="Filter cookies"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            type="button"
+            class="icon-btn search-clear"
+            id="filter-clear"
+            title="Clear filter (Esc)"
+            aria-label="Clear filter"
+            hidden
+          >
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+        <span class="counts" id="counts"></span>
+      </div>
+
+      <main class="list" id="list" role="list">
+        <div class="empty loading">Loading cookies…</div>
+      </main>
+
+      <section class="panel" id="panel" aria-label="Import and export" hidden>
+        <div class="panel-bar">
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab" role="tab" data-tab="export" aria-selected="true" id="tab-export">
+              Export
+            </button>
+            <button type="button" class="tab" role="tab" data-tab="import" aria-selected="false" id="tab-import">
+              Import
+            </button>
+          </div>
+          <button type="button" class="icon-btn" data-act="close-panel" title="Close" aria-label="Close">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+
+        <div class="panel-body" data-panel="export" role="tabpanel" aria-labelledby="tab-export">
+          <div class="panel-row">
+            <label class="panel-label" for="export-format">Format</label>
+            <select id="export-format"></select>
+            <span class="spacer"></span>
+            <button type="button" class="btn ghost" id="export-copy">
+              <svg class="icon"><use href="#i-copy" /></svg>
+              Copy
+            </button>
+            <button type="button" class="btn ghost" id="export-download">
+              <svg class="icon"><use href="#i-download" /></svg>
+              Download
+            </button>
+          </div>
+          <textarea id="export-text" class="panel-text" readonly spellcheck="false" wrap="off"></textarea>
+          <p class="panel-note" id="export-note"></p>
+        </div>
+
+        <div class="panel-body" data-panel="import" role="tabpanel" aria-labelledby="tab-import" hidden>
+          <textarea
+            id="import-text"
+            class="panel-text"
+            placeholder="Paste exported JSON, or a Cookie: header string such as session=abc; theme=dark"
+            spellcheck="false"
+            wrap="off"
+          ></textarea>
+          <div class="panel-row">
+            <label class="switch">
+              <input type="checkbox" id="import-replace" checked />
+              <span>Replace every cookie for this site</span>
+            </label>
+            <span class="spacer"></span>
+            <button type="button" class="btn ghost" id="import-clear">Clear</button>
+            <button type="button" class="btn primary" id="import-go">Import</button>
+          </div>
+          <p class="panel-note" id="import-note">
+            Cookies are written for this site only; anything for another domain is skipped.
+          </p>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <button type="button" class="btn primary" id="add">
+          <svg class="icon"><use href="#i-plus" /></svg>
+          Add cookie
+        </button>
+        <button type="button" class="btn ghost" id="transfer">
+          <svg class="icon"><use href="#i-transfer" /></svg>
+          Import / export
+        </button>
+        <p class="hints">
+          <kbd>/</kbd> filter <span class="sep">·</span> <kbd>N</kbd> new <span class="sep">·</span> <kbd>E</kbd> export
+          <span class="sep">·</span> <kbd>I</kbd> import <span class="sep">·</span> <kbd>Ctrl</kbd>+<kbd>S</kbd> save
+        </p>
+      </footer>
+    </section>
+
+    <section class="view" id="view-storage" role="tabpanel" aria-labelledby="view-tab-storage" hidden>
+      <div class="toolbar">
+        <div class="search">
+          <svg class="icon"><use href="#i-search" /></svg>
+          <input
+            id="storage-filter"
+            type="search"
+            placeholder="Filter by key or value"
+            aria-label="Filter local storage"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            type="button"
+            class="icon-btn search-clear"
+            id="storage-filter-clear"
+            title="Clear filter (Esc)"
+            aria-label="Clear filter"
+            hidden
+          >
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+        <span class="counts" id="storage-counts"></span>
+      </div>
+
+      <main class="list" id="storage-list" role="list">
+        <div class="empty loading">Loading local storage…</div>
+      </main>
+
+      <section class="panel" id="storage-panel" aria-label="Import and export local storage" hidden>
+        <div class="panel-bar">
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab" role="tab" data-tab="export" aria-selected="true" id="storage-tab-export">
+              Export
+            </button>
+            <button
+              type="button"
+              class="tab"
+              role="tab"
+              data-tab="import"
+              aria-selected="false"
+              id="storage-tab-import"
+            >
+              Import
+            </button>
+          </div>
+          <button type="button" class="icon-btn" data-act="close-panel" title="Close" aria-label="Close">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+
+        <div class="panel-body" data-panel="export" role="tabpanel" aria-labelledby="storage-tab-export">
+          <div class="panel-row">
+            <span class="panel-label">JSON</span>
+            <span class="spacer"></span>
+            <button type="button" class="btn ghost" id="storage-export-copy">
+              <svg class="icon"><use href="#i-copy" /></svg>
+              Copy
+            </button>
+            <button type="button" class="btn ghost" id="storage-export-download">
+              <svg class="icon"><use href="#i-download" /></svg>
+              Download
+            </button>
+          </div>
+          <textarea id="storage-export-text" class="panel-text" readonly spellcheck="false" wrap="off"></textarea>
+          <p class="panel-note" id="storage-export-note"></p>
+        </div>
+
+        <div class="panel-body" data-panel="import" role="tabpanel" aria-labelledby="storage-tab-import" hidden>
+          <textarea
+            id="storage-import-text"
+            class="panel-text"
+            placeholder='Paste a JSON object of keys and values, such as {"theme": "dark", "lang": "en"}'
+            spellcheck="false"
+            wrap="off"
+          ></textarea>
+          <div class="panel-row">
+            <label class="switch">
+              <input type="checkbox" id="storage-import-replace" />
+              <span>Replace every item for this site</span>
+            </label>
+            <span class="spacer"></span>
+            <button type="button" class="btn ghost" id="storage-import-clear">Clear</button>
+            <button type="button" class="btn primary" id="storage-import-go">Import</button>
+          </div>
+          <p class="panel-note" id="storage-import-note">Items are written to this page's local storage only.</p>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <button type="button" class="btn primary" id="storage-add">
+          <svg class="icon"><use href="#i-plus" /></svg>
+          Add item
+        </button>
+        <button type="button" class="btn ghost" id="storage-transfer">
+          <svg class="icon"><use href="#i-transfer" /></svg>
+          Import / export
+        </button>
+        <p class="hints">
+          <kbd>/</kbd> filter <span class="sep">·</span> <kbd>N</kbd> new <span class="sep">·</span> <kbd>E</kbd> export
+          <span class="sep">·</span> <kbd>I</kbd> import <span class="sep">·</span> <kbd>Ctrl</kbd>+<kbd>S</kbd> save
+        </p>
+      </footer>
+    </section>
+
+    <datalist id="domain-options"></datalist>
+
+    <template id="tpl-access">
+      <div class="empty access">
+        <strong>Allow access to <span data-host></span></strong>
+        <span>
+          Cookie Editor only reads and changes cookies and local storage on sites you allow. A small window opens to
+          confirm it, and you can take access back at any time from the browser's extensions menu.
+        </span>
+        <div class="access-actions">
+          <button type="button" class="btn primary" data-act="grant-site">Allow on this site</button>
+          <button type="button" class="btn ghost" data-act="grant-all">Allow on all sites</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-item">
+      <div class="item" role="listitem">
+        <div class="row" tabindex="0" aria-expanded="false">
+          <div class="row-main">
+            <div class="row-top">
+              <span class="row-name"></span>
+              <span class="row-flags"></span>
+              <span class="row-expiry"></span>
+            </div>
+            <div class="row-value"></div>
+            <div class="row-scope">
+              <span class="row-domain"></span>
+              <span class="row-path"></span>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="icon-btn" data-act="copy" title="Copy value" aria-label="Copy value">
+              <svg class="icon"><use href="#i-copy" /></svg>
+            </button>
+            <button type="button" class="icon-btn" data-act="edit" title="Edit cookie" aria-label="Edit cookie">
+              <svg class="icon"><use href="#i-pencil" /></svg>
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              data-act="delete"
+              title="Delete cookie"
+              aria-label="Delete cookie"
+            >
+              <svg class="icon"><use href="#i-trash" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-editor">
+      <form class="editor" novalidate>
+        <div class="editor-head">
+          <span class="editor-title"></span>
+          <button type="button" class="icon-btn" data-act="close" title="Close" aria-label="Close">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+
+        <div class="grid">
+          <div class="field span-2">
+            <label for="f-name">Name</label>
+            <input id="f-name" data-field="name" type="text" autocomplete="off" spellcheck="false" />
+            <p class="msg" data-msg="name"></p>
+          </div>
+
+          <div class="field span-2">
+            <div class="label-row">
+              <label for="f-value">Value</label>
+              <span class="counter" data-counter></span>
+            </div>
+            <textarea id="f-value" data-field="value" rows="2" spellcheck="false" wrap="off"></textarea>
+            <p class="msg" data-msg="value"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-domain">Domain</label>
+            <input
+              id="f-domain"
+              data-field="domain"
+              type="text"
+              list="domain-options"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <p class="msg" data-msg="domain"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-path">Path</label>
+            <input id="f-path" data-field="path" type="text" autocomplete="off" spellcheck="false" />
+            <p class="msg" data-msg="path"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-expiry">Expires</label>
+            <div class="combo">
+              <select id="f-expiry" data-field="expiry"></select>
+              <input id="f-expiry-date" data-field="expiryDate" type="datetime-local" hidden />
+            </div>
+            <p class="msg" data-msg="expiry"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-samesite">SameSite</label>
+            <select id="f-samesite" data-field="sameSite"></select>
+            <p class="msg" data-msg="sameSite"></p>
+          </div>
+
+          <div class="field span-2">
+            <div class="switches">
+              <label class="switch">
+                <input type="checkbox" data-field="subdomains" />
+                <span>Apply to subdomains</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" data-field="secure" />
+                <span>Secure</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" data-field="httpOnly" />
+                <span>HttpOnly</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" data-field="partition" />
+                <span>Partitioned</span>
+              </label>
+            </div>
+            <p class="msg" data-msg="secure"></p>
+          </div>
+
+          <div class="field span-2 partition" data-partition hidden>
+            <label for="f-partition-site">Top-level site</label>
+            <input id="f-partition-site" data-field="partitionSite" type="text" autocomplete="off" spellcheck="false" />
+            <p class="msg" data-msg="partition"></p>
+          </div>
+        </div>
+
+        <div class="editor-foot">
+          <button type="button" class="btn ghost danger" data-act="delete">
+            <svg class="icon"><use href="#i-trash" /></svg>
+            Delete
+          </button>
+          <button type="button" class="btn ghost" data-act="duplicate">Duplicate</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn ghost" data-act="close">Cancel</button>
+          <button type="submit" class="btn primary">
+            <svg class="icon"><use href="#i-check" /></svg>
+            Save
+          </button>
+        </div>
+      </form>
+    </template>
+
+    <template id="tpl-storage-item">
+      <div class="item" role="listitem">
+        <div class="row" tabindex="0" aria-expanded="false">
+          <div class="row-main">
+            <div class="row-top">
+              <span class="row-name"></span>
+              <span class="row-flags"></span>
+              <span class="row-size"></span>
+            </div>
+            <div class="row-value"></div>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="icon-btn" data-act="copy" title="Copy value" aria-label="Copy value">
+              <svg class="icon"><use href="#i-copy" /></svg>
+            </button>
+            <button type="button" class="icon-btn" data-act="edit" title="Edit item" aria-label="Edit item">
+              <svg class="icon"><use href="#i-pencil" /></svg>
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              data-act="delete"
+              title="Delete item"
+              aria-label="Delete item"
+            >
+              <svg class="icon"><use href="#i-trash" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="tpl-storage-editor">
+      <form class="editor storage-editor" novalidate>
+        <div class="editor-head">
+          <span class="editor-title"></span>
+          <button type="button" class="icon-btn" data-act="close" title="Close" aria-label="Close">
+            <svg class="icon"><use href="#i-x" /></svg>
+          </button>
+        </div>
+
+        <div class="grid">
+          <div class="field span-2">
+            <label for="s-key">Key</label>
+            <input id="s-key" data-field="key" type="text" autocomplete="off" spellcheck="false" />
+            <p class="msg" data-msg="key"></p>
+          </div>
+
+          <div class="field span-2">
+            <div class="label-row">
+              <label for="s-value">Value</label>
+              <span class="label-tools">
+                <span class="counter" data-counter></span>
+                <button
+                  type="button"
+                  class="btn ghost small"
+                  data-act="format"
+                  title="Switch between formatted and one-line JSON"
+                  hidden
+                >
+                  <svg class="icon"><use href="#i-braces" /></svg>
+                  Format JSON
+                </button>
+              </span>
+            </div>
+            <textarea id="s-value" data-field="value" rows="5" spellcheck="false"></textarea>
+            <p class="msg" data-msg="value"></p>
+          </div>
+        </div>
+
+        <div class="editor-foot">
+          <button type="button" class="btn ghost danger" data-act="delete">
+            <svg class="icon"><use href="#i-trash" /></svg>
+            Delete
+          </button>
+          <button type="button" class="btn ghost" data-act="duplicate">Duplicate</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn ghost" data-act="close">Cancel</button>
+          <button type="submit" class="btn primary">
+            <svg class="icon"><use href="#i-check" /></svg>
+            Save
+          </button>
+        </div>
+      </form>
+    </template>
+
+    <script src="../lib/cookies.js"></script>
+    <script src="../lib/storage.js"></script>
+    <script src="../lib/api.js"></script>
+    <script src="storage-view.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

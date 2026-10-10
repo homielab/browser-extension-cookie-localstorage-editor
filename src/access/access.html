@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="../icons/icon-32.png" />
+    <title>Allow access · Cookie & LocalStorage Editor</title>
+    <link rel="stylesheet" href="../popup/popup.css" />
+    <link rel="stylesheet" href="access.css" />
+  </head>
+  <body>
+    <main class="access-page">
+      <img class="access-logo" src="../icons/icon-128.png" width="64" height="64" alt="" />
+
+      <h1 id="title">Allow Cookie Editor</h1>
+      <p id="lead" class="access-lead"></p>
+      <ul id="hosts" class="access-hosts"></ul>
+
+      <p id="status" class="access-status" role="status" aria-live="polite" hidden></p>
+
+      <div class="access-buttons" id="buttons">
+        <button type="button" class="btn ghost" id="cancel">Cancel</button>
+        <button type="button" class="btn primary" id="allow">Allow access</button>
+      </div>
+
+      <p class="access-fine">
+        Your browser asks you to confirm next. Nothing ever leaves your computer, and you can take access back at any
+        time from the browser's extensions menu.
+      </p>
+    </main>
+
+    <script src="../lib/cookies.js"></script>
+    <script src="../lib/api.js"></script>
+    <script src="access.js"></script>
+  </body>
+</html>

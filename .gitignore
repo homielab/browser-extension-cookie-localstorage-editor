@@ -1,0 +1,16 @@
+# Cache and temporary directories
+dist/
+node_modules/
+__pycache__/
+*.pyc
+
+# Local browser profiles from testing the unpacked extension
+profile/
+*.log
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

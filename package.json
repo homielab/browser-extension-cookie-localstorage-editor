@@ -1,0 +1,46 @@
+{
+  "name": "cookie-localstorage-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Quick edit cookies and localStorage of the current site: view, add, delete, import and export as JSON. No tracking.",
+  "author": {
+    "name": "HomieLab",
+    "email": "contact@homielab.com",
+    "url": "https://homielab.com"
+  },
+  "license": "MIT",
+  "funding": {
+    "type": "ko-fi",
+    "url": "https://ko-fi.com/homielab"
+  },
+  "keywords": [
+    "cookie",
+    "cookie-editor",
+    "cookie-manager",
+    "cookies",
+    "developer-tools",
+    "localstorage",
+    "privacy",
+    "webextension"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:dist": "node tools/build.mjs && POPUP_DIR=dist/$npm_package_name-$npm_package_version/popup node --test test/popup.test.js",
+    "lint": "eslint . && prettier --check .",
+    "lint:fix": "eslint --fix . && prettier --write .",
+    "format": "prettier --write .",
+    "build": "node tools/build.mjs",
+    "icons": "python3 tools/make-icons.py",
+    "screenshots": "python3 tools/make-screenshots.py"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "fflate": "^0.8.3",
+    "globals": "^17.13.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.9.10"
+  }
+}

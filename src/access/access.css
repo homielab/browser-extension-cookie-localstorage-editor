@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Cookie Editor — access window. Colours, type and buttons come from
+   popup.css; this only lays out the page.
+   ========================================================================== */
+
+body {
+  /* popup.css fixes the popup's width; this page fills its own window. */
+  width: auto;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.access-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 400px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.access-logo {
+  margin-bottom: 4px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.access-lead {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.access-hosts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.access-hosts:empty {
+  display: none;
+}
+
+.access-hosts li {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+
+.access-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.access-buttons .btn {
+  padding: 7px 16px;
+}
+
+.access-status {
+  margin: 4px 0 0;
+  font-weight: 550;
+}
+
+.access-status.ok {
+  color: var(--ok);
+}
+
+.access-status.error {
+  color: var(--danger);
+}
+
+.access-fine {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+}

@@ -1,0 +1,1083 @@
+/* ==========================================================================
+   Cookie Editor — popup styles
+   ========================================================================== */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --surface-2: #eef0f4;
+  --border: #e0e4ea;
+  --border-strong: #cfd4dd;
+  --text: #1b1f26;
+  --text-muted: #6a7280;
+  --accent: #2f6feb;
+  --accent-text: #ffffff;
+  --danger: #d92d20;
+  --danger-soft: #fdf0ef;
+  --ok: #067647;
+  --warn-bg: #fff8e6;
+  --warn-text: #8a5a00;
+  --warn-border: #f3dfae;
+  --focus: #2f6feb;
+  --info-bg: #f1edfd;
+  --info-text: #5b3fc4;
+  --toast-shadow: 0 6px 20px rgb(16 24 40 / 0.18), 0 1px 3px rgb(16 24 40 / 0.12);
+  --radius: 8px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1e23;
+    --surface: #23262c;
+    --surface-2: #2b2f36;
+    --border: #333842;
+    --border-strong: #454b57;
+    --text: #e7e9ec;
+    --text-muted: #99a1af;
+    --accent: #5b9bff;
+    --accent-text: #10203a;
+    --danger: #f97066;
+    --danger-soft: #2e2020;
+    --ok: #4ade80;
+    --warn-bg: #2e2817;
+    --warn-text: #e8c56a;
+    --warn-border: #4d411f;
+    --focus: #7fb0ff;
+    --info-bg: #282340;
+    --info-text: #b9a8ff;
+    --toast-shadow: 0 6px 20px rgb(0 0 0 / 0.5), 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Several components below set `display`, which would otherwise beat the user
+   agent's `[hidden] { display: none }`. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 780px;
+  max-width: 100%;
+  /* Deliberately no height constraint. The browser sizes the popup from this
+     document, so tying the height to the viewport (100vh) is circular: during
+     the sizing pass the viewport is small, the document collapses, and the list
+     can end up with no height at all. The list caps itself instead. */
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 var(--sans);
+}
+
+.sprite {
+  display: none;
+}
+
+.icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --------------------------------------------------------------- header --- */
+
+/* Everything except the list keeps its natural height; only the list and the
+   panel's textarea give way when the popup runs out of room. */
+.bar,
+.toolbar,
+.confirm,
+.foot {
+  flex: none;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bar-logo {
+  border-radius: 5px;
+}
+
+.bar-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.bar-host {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+}
+
+.bar-sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------- views --- */
+
+/* Cookies | Local storage. Each view's children take part in the body's
+   flex column directly, so the list keeps its scroll limits either way. */
+.views {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+  padding: 7px 10px 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-tab:hover {
+  color: var(--text);
+}
+
+.view-tab[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.view-tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.view-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.view-count:empty {
+  display: none;
+}
+
+.view-tab[aria-selected="true"] .view-count {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.view {
+  display: contents;
+}
+
+/* -------------------------------------------------------------- toolbar --- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.search {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search .icon {
+  position: absolute;
+  left: 9px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search input {
+  width: 100%;
+  padding: 6px 32px 6px 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  appearance: none;
+}
+
+.search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+  border-color: var(--focus);
+}
+
+.search .search-clear {
+  position: absolute;
+  right: 4px;
+}
+
+.search .search-clear .icon {
+  position: static;
+  width: 13px;
+  height: 13px;
+}
+
+.counts {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- notices --- */
+
+/* A toast floating above the footer rather than a bar in the flow: inserting a
+   bar would shove the list down under the pointer every time something is
+   saved, which is exactly the jank refreshCookies() works to avoid. */
+.notice {
+  position: fixed;
+  left: 50%;
+  bottom: 58px;
+  z-index: 10;
+  max-width: calc(100% - 48px);
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--toast-shadow);
+  font-size: 12px;
+  font-weight: 550;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.notice.ok {
+  color: var(--ok);
+}
+
+.notice.error {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.notice.neutral {
+  color: var(--text-muted);
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--danger-soft);
+  border-bottom: 1px solid var(--border);
+  color: var(--danger);
+}
+
+.confirm .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.confirm p {
+  flex: 1;
+  margin: 0;
+  color: var(--text);
+}
+
+.confirm strong {
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------- list --- */
+
+/* The one part that scrolls. Its ceiling keeps the popup inside the browser's
+   600px limit (header 54 + tabs 34 + toolbar 50 + footer 50 + room for the
+   confirm bar) while still growing to fit a short list. */
+.list {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The import/export panel takes up to 260px of the same budget, so the list
+   gives that room back rather than pushing the header out of the popup. */
+.view:has(> .panel:not([hidden])) .list {
+  max-height: 140px;
+}
+
+.list:focus {
+  outline: none;
+}
+
+.list:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+
+.item {
+  scroll-margin: 8px;
+}
+
+.item + .item {
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 12px;
+  cursor: pointer;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+
+.row.open {
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.row-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55%;
+}
+
+.row-flags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  align-self: center;
+}
+
+.badge {
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.badge.warn {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
+
+.badge.info {
+  border-color: transparent;
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.row-expiry,
+.row-size {
+  margin-left: auto;
+  flex: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row-expiry.urgent {
+  color: var(--warn-text);
+  font-weight: 600;
+}
+
+.row-expiry.expired {
+  color: var(--danger);
+}
+
+.row-value {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+}
+
+/* `blank`, not `empty`: `.empty` is the class used by the full-panel empty
+   states, and reusing it here would inherit their padding and centring. */
+.row-value.blank {
+  font-style: italic;
+  font-family: var(--sans);
+}
+
+.row-scope {
+  display: flex;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.row-scope span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-domain {
+  direction: ltr;
+}
+
+.row-path {
+  font-family: var(--mono);
+  opacity: 0.85;
+}
+
+.row-actions {
+  display: flex;
+  gap: 2px;
+  flex: none;
+  opacity: 0;
+}
+
+.row:hover .row-actions,
+.row:focus-within .row-actions,
+.row:focus-visible .row-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .row-actions {
+    opacity: 1;
+  }
+}
+
+/* The open row already is the editor; its pencil would only reopen it. */
+.row.open [data-act="edit"] {
+  visibility: hidden;
+}
+
+.row.open .row-actions {
+  opacity: 1;
+}
+
+.empty {
+  padding: 26px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty.access > span {
+  display: block;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.access-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.empty.loading {
+  font-size: 12px;
+}
+
+.empty strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+/* --------------------------------------------------------------- editor --- */
+
+.editor {
+  padding: 10px 12px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* Hold the Save row in view while the form scrolls, so saving is always one
+   click away no matter how long the list behind it is. */
+.editor-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: sticky;
+  bottom: -12px;
+  margin: 10px -12px -12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.editor-title {
+  flex: 1;
+  font-weight: 650;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.field > label,
+.label-row > label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.counter {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.label-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn.small {
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.btn.small .icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* Storage values are often long JSON: give them room, and wrap them. */
+.storage-editor textarea {
+  min-height: 96px;
+  max-height: 220px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.field input[type="text"],
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.field textarea {
+  font-family: var(--mono);
+  font-size: 11px;
+  resize: vertical;
+  min-height: 44px;
+}
+
+.field input:disabled {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.field :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+  border-color: var(--focus);
+}
+
+.field.invalid input,
+.field.invalid textarea,
+.field.invalid select {
+  border-color: var(--danger);
+}
+
+.msg {
+  display: none;
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.msg.show {
+  display: block;
+}
+
+.msg.error {
+  color: var(--danger);
+}
+
+.msg.warn {
+  color: var(--warn-text);
+}
+
+/* The expiry select and its custom date input share one narrow column, so the
+   date wraps onto its own full-width line rather than being squeezed. */
+.combo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.combo select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.combo input {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.partition {
+  padding: 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+}
+
+.editor-foot .spacer {
+  flex: 1;
+}
+
+/* -------------------------------------------------------------- buttons --- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--surface-2);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn.danger {
+  color: var(--danger);
+  border-color: var(--border-strong);
+}
+
+.btn.danger:hover,
+.btn.ghost.danger:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn.ghost:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn:focus-visible,
+.icon-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.btn:disabled,
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn:disabled:hover,
+.icon-btn:disabled:hover {
+  background: var(--bg);
+  color: inherit;
+}
+
+.btn.on {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.icon-btn.donate:hover {
+  color: var(--danger);
+}
+
+.icon-btn.danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.icon-btn.done,
+.icon-btn.done:hover {
+  color: var(--ok);
+}
+
+/* --------------------------------------------------------------- panel --- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+  /* Also capped in pixels rather than as a share of the document, for the same
+     reason as the list above. */
+  max-height: 260px;
+  min-height: 0;
+  padding: 10px 12px;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+
+.tab {
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+.panel-bar .icon-btn {
+  margin-left: auto;
+}
+
+.panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.panel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  flex-wrap: wrap;
+}
+
+.panel-row .spacer {
+  flex: 1;
+}
+
+.panel-label {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.panel-row select {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.panel-text {
+  flex: 1 1 auto;
+  min-height: 64px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  resize: none;
+  white-space: pre;
+  overflow: auto;
+}
+
+.panel-text:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+  border-color: var(--focus);
+}
+
+.panel-text::placeholder {
+  color: var(--text-muted);
+  font-family: var(--sans);
+  white-space: pre-wrap;
+}
+
+.panel-note {
+  flex: none;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.panel-note.error {
+  color: var(--danger);
+}
+
+.panel-note.ok {
+  color: var(--ok);
+}
+
+/* --------------------------------------------------------------- footer --- */
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.hints {
+  margin: 0 0 0 auto;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hints .sep {
+  margin: 0 3px;
+  opacity: 0.6;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 4px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 10px;
+  line-height: 15px;
+  color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------- states ---- */
+
+body.busy .list,
+.view.busy .list {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Nothing can be listed or deleted without a site, so the toolbar and the
+   action buttons go away rather than sitting there inert. */
+body.blocked .views,
+body.blocked .toolbar,
+body.blocked .foot,
+body.blocked #delete-all {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn,
+  .icon-btn,
+  .row {
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+  }
+
+  .row-actions {
+    transition: opacity 0.12s ease;
+  }
+
+  .notice:not([hidden]) {
+    animation: toast-in 0.16s ease-out;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 6px);
+    }
+  }
+}
