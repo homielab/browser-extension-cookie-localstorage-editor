@@ -2161,3 +2161,168 @@ maybe("quick edit for cookies too: opening a cookie focuses its value", async ()
   assert.strictEqual(doc.activeElement, field(doc, "value"));
   window.dispose();
 });
+
+/* ------------------------------------------- quick copy and quick import -- */
+
+/** A paste of `text` aimed at `node`, as Ctrl+V would deliver it. */
+function paste(doc, node, text) {
+  const event = new doc.defaultView.Event("paste", { bubbles: true, cancelable: true });
+  event.clipboardData = { getData: () => text };
+  node.dispatchEvent(event);
+  return event;
+}
+
+function captureClipboard(window) {
+  const copied = [];
+  Object.defineProperty(window.navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: async (text) => copied.push(text) },
+  });
+  return copied;
+}
+
+function seedSid(store) {
+  store.set({ url: "https://www.example.com/", name: "sid", value: "abc=1", path: "/", storeId: "0", sameSite: "lax" });
+}
+
+maybe("copies a cookie as name=value", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+  const copied = captureClipboard(window);
+
+  click(doc, rowNamed(doc, "sid").querySelector('[data-act="copy-pair"]'));
+  await flush(window, 3);
+  assert.deepStrictEqual(copied, ["sid=abc=1"]);
+  window.dispose();
+});
+
+maybe("the footer's add button is never a second submit button", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+  const add = $(doc, "#add");
+  const filled = () => $$(doc, ".btn.primary").filter((button) => !button.closest("[hidden]"));
+  assert.deepStrictEqual(filled(), [add]);
+
+  click(doc, add);
+  const submit = $(doc, ".editor button[type=submit]");
+  assert.deepStrictEqual(filled(), [submit], "only the form's own button is filled");
+  assert.strictEqual(add.disabled, true, "and the footer's cannot be pressed by mistake");
+
+  click(doc, $(doc, '.editor [data-act="close"]'));
+  assert.deepStrictEqual(filled(), [add]);
+  assert.strictEqual(add.disabled, false);
+
+  // Editing: adding another cookie stays possible, but Save is the filled one.
+  click(doc, $(rowNamed(doc, "sid"), ".row"));
+  assert.deepStrictEqual(filled(), [$(doc, ".editor button[type=submit]")]);
+  assert.strictEqual(add.disabled, false);
+  window.dispose();
+});
+
+maybe("pasting name=value onto the popup opens it as a new cookie, written only on submit", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+
+  const event = paste(doc, doc.body, "token=xyz");
+  assert.ok(event.defaultPrevented);
+  assert.strictEqual(field(doc, "name").value, "token");
+  assert.strictEqual(field(doc, "value").value, "xyz");
+  assert.strictEqual(store.all().length, 1, "nothing written yet");
+
+  submitEditor(doc);
+  await flush(window);
+  assert.deepStrictEqual(names(doc), ["sid", "token"]);
+  window.dispose();
+});
+
+maybe("pasting name=value into the name of a new cookie fills in both", async () => {
+  const { doc, window } = await start();
+  click(doc, $(doc, "#add"));
+  const event = paste(doc, field(doc, "name"), "token=a=b");
+  assert.ok(event.defaultPrevented);
+  assert.strictEqual(field(doc, "name").value, "token");
+  assert.strictEqual(field(doc, "value").value, "a=b");
+
+  // Plain text is left to the browser.
+  setField(doc, field(doc, "name"), "");
+  assert.ok(!paste(doc, field(doc, "name"), "plain").defaultPrevented);
+  window.dispose();
+});
+
+maybe("pasting several cookies goes to the import panel, set to add rather than replace", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+
+  paste(doc, doc.body, "a=1; b=2");
+  assert.ok(!$(doc, "#panel").hidden);
+  assert.strictEqual($(doc, "#import-text").value, "a=1; b=2");
+  assert.strictEqual($(doc, "#import-replace").checked, false);
+  assert.strictEqual(store.all().length, 1, "nothing written yet");
+
+  click(doc, $(doc, "#import-go"));
+  await flush(window);
+  assert.deepStrictEqual(names(doc), ["a", "b", "sid"]);
+  window.dispose();
+});
+
+maybe("a paste into a field, or while a form is open, is left alone", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+
+  assert.ok(!paste(doc, $(doc, "#filter"), "a=1").defaultPrevented);
+  assert.strictEqual($(doc, ".editor"), null);
+
+  click(doc, $(rowNamed(doc, "sid"), ".row"));
+  assert.ok(!paste(doc, doc.body, "a=1").defaultPrevented);
+  assert.strictEqual(field(doc, "name").value, "sid");
+  window.dispose();
+});
+
+maybe("local storage: copies key=value, and a pasted pair opens the item it names", async () => {
+  const { window, doc, page } = await startStorage({ theme: "light" });
+  const copied = captureClipboard(window);
+  click(doc, storageRow(doc, "theme").querySelector('[data-act="copy-pair"]'));
+  await flush(window, 3);
+  assert.deepStrictEqual(copied, ["theme=light"]);
+
+  // A key the page already has is opened with the new value, not refused.
+  paste(doc, doc.body, "theme=dark");
+  assert.strictEqual(storageField(doc, "value").value, "dark");
+  assert.deepStrictEqual(page.items(), { theme: "light" }, "nothing written yet");
+  submitStorage(doc);
+  await flush(window);
+  assert.deepStrictEqual(page.items(), { theme: "dark" });
+
+  paste(doc, doc.body, 'user={"id": 1}');
+  assert.strictEqual(storageField(doc, "key").value, "user");
+  submitStorage(doc);
+  await flush(window);
+  assert.deepStrictEqual(page.items(), { theme: "dark", user: '{"id": 1}' });
+  window.dispose();
+});
+
+maybe("local storage: imports key=value lines", async () => {
+  const { window, doc, page } = await startStorage({ keep: "1" });
+  paste(doc, doc.body, "a=1\nb=x=y");
+  assert.ok(!$(doc, "#storage-panel").hidden);
+  click(doc, $(doc, "#storage-import-go"));
+  await flush(window);
+  assert.deepStrictEqual(page.items(), { keep: "1", a: "1", b: "x=y" });
+  window.dispose();
+});
+
+maybe("saving a cookie without changing it still closes the form", async () => {
+  const store = makeStore();
+  seedSid(store);
+  const { doc, window } = await start({ store });
+  click(doc, $(rowNamed(doc, "sid"), ".row"));
+  submitEditor(doc);
+  await flush(window);
+  assert.strictEqual($(doc, ".editor"), null);
+  window.dispose();
+});

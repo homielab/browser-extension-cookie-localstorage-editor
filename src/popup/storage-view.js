@@ -65,6 +65,8 @@
       editor: null,
       /** @type {{tab: "export"|"import"}|null} */
       transfer: null,
+      /** Whether the page's storage can be written to. */
+      enabled: false,
       busy: false,
     };
 
@@ -115,6 +117,7 @@
       event.preventDefault();
       save();
     });
+    dom.list.addEventListener("paste", onEditorPaste);
 
     /* -------------------------------------------------------------- load -- */
 
@@ -193,8 +196,20 @@
     }
 
     function setEnabled(enabled) {
-      dom.add.disabled = !enabled || state.busy;
+      state.enabled = enabled;
       dom.transfer.disabled = !enabled || state.busy;
+      syncAddButton();
+    }
+
+    /**
+     * Keep one filled button on screen: while a form or the import panel is
+     * open, "Add item" in the footer steps back, and while a new item is
+     * being filled in it is off, so it cannot be mistaken for the form's.
+     */
+    function syncAddButton() {
+      const creating = Boolean(state.editor) && state.editor.mode === "create";
+      dom.add.classList.toggle("primary", !state.editor && !state.transfer);
+      dom.add.disabled = !state.enabled || state.busy || creating;
     }
 
     /* -------------------------------------------------------------- list -- */
@@ -319,7 +334,10 @@
           case "format":
             return toggleFormat();
           case "copy":
-            if (entry) copyValue(entry, action);
+            if (entry) copyText(entry.value, `Copied the value of “${entry.key}”.`, action);
+            return;
+          case "copy-pair":
+            if (entry) copyText(`${entry.key}=${entry.value}`, `Copied “${entry.key}” as key=value.`, action);
             return;
           case "duplicate":
             return duplicate();
@@ -362,6 +380,60 @@
       focusField("key", Boolean(draft));
     }
 
+    /**
+     * Open `pair` ({key, value}) ready to save: as a new item, or, for a key
+     * the page already has, as that item with the new value.
+     */
+    function openPair(pair) {
+      if (!state.byKey.has(pair.key)) return openCreate(pair);
+      startEditor({ mode: "edit", key: pair.key, draft: pair });
+      if (editorForm.scrollIntoView) editorForm.scrollIntoView({ block: "nearest" });
+      focusField("key", true);
+    }
+
+    /**
+     * Pasting `key=value` over the key of a new, still empty item fills in
+     * both. Only then: a key may itself contain `=`.
+     */
+    function onEditorPaste(event) {
+      if (!editorForm || !state.editor || state.editor.mode !== "create") return;
+      const key = fieldOf(editorForm, "key");
+      if (event.target !== key || fieldOf(editorForm, "value").value !== "") return;
+      if (key.selectionStart !== 0 || key.selectionEnd !== key.value.length) return;
+
+      const text = event.clipboardData ? event.clipboardData.getData("text") : "";
+      const pairs = S.parsePairs(text);
+      if (!pairs.length) return;
+      event.preventDefault();
+      if (pairs.length > 1) reviewImport(text, pairs.length);
+      else openPair(pairs[0]);
+    }
+
+    /**
+     * Quick import of text pasted onto the popup. One `key=value` opens that
+     * item filled in, ready to save; anything longer goes to the import
+     * panel. Either way nothing is written until the user confirms.
+     * @returns {boolean} whether the paste was taken
+     */
+    function pasteText(text) {
+      if (!state.context || state.error || state.busy || state.editor) return false;
+      const parsed = S.parseImport(text);
+      if (parsed.error) shell.showNotice("Paste key=value to add an item.", "neutral");
+      else if (parsed.entries.length === 1) openPair(parsed.entries[0]);
+      else reviewImport(text, parsed.entries.length);
+      return true;
+    }
+
+    /** Put pasted items in the import panel, set to add rather than replace. */
+    function reviewImport(text, count) {
+      closeEditor();
+      openPanel("import");
+      if (!state.transfer) return;
+      dom.importText.value = text.trim();
+      dom.importReplace.checked = false;
+      setNote(dom.importNote, `Pasted ${pluralize(count, "item")}. Nothing is written until you press Import.`);
+    }
+
     function duplicate() {
       if (!state.editor || !editorForm) return;
       const draft = readDraft(editorForm);
@@ -386,6 +458,7 @@
       editorForm = null;
       editorHolder = null;
       markOpenRow(null);
+      syncAddButton();
     }
 
     function mountEditor() {
@@ -393,6 +466,7 @@
       editorForm = dom.editorTemplate.content.firstElementChild.cloneNode(true);
       const editing = state.editor.mode === "edit";
       $(".editor-title", editorForm).textContent = editing ? "Edit item" : "New item";
+      $("[data-submit-label]", editorForm).textContent = editing ? "Save" : "Add item";
       for (const act of editorForm.querySelectorAll('[data-act="delete"], [data-act="duplicate"]')) {
         act.hidden = !editing;
       }
@@ -410,6 +484,7 @@
         editorHolder.append(editorForm);
         dom.list.prepend(editorHolder);
       }
+      syncAddButton();
       fitValue(editorForm);
     }
 
@@ -541,10 +616,10 @@
       );
     }
 
-    async function copyValue(entry, button) {
+    async function copyText(text, done, button) {
       try {
-        await navigator.clipboard.writeText(entry.value);
-        shell.showNotice(`Copied the value of “${entry.key}”.`, "ok");
+        await navigator.clipboard.writeText(text);
+        shell.showNotice(done, "ok");
         shell.flashDone(button);
       } catch (_) {
         shell.showNotice("The clipboard is not available here.", "error");
@@ -559,6 +634,7 @@
       state.transfer = { tab };
       dom.panel.hidden = false;
       dom.transfer.classList.add("on");
+      syncAddButton();
       showPanel(tab);
     }
 
@@ -585,6 +661,7 @@
       state.transfer = null;
       dom.panel.hidden = true;
       dom.transfer.classList.remove("on");
+      syncAddButton();
     }
 
     function setNote(node, text, kind) {
@@ -663,6 +740,7 @@
       openPanel,
       askDeleteAll,
       save,
+      paste: pasteText,
       focusFilter() {
         dom.filter.focus();
         dom.filter.select();

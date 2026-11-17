@@ -647,6 +647,13 @@ test("serializeCookies picks the requested format", () => {
   assert.strictEqual(JSON.parse(U.serializeCookies(jar, "nonsense")).length, 2);
 });
 
+test("parseHeaderString ignores a leading Cookie:", () => {
+  assert.deepStrictEqual(U.parseHeaderString("Cookie: a=1; b=2"), [
+    { name: "a", value: "1" },
+    { name: "b", value: "2" },
+  ]);
+});
+
 test("parseHeaderString splits on the first = and skips junk", () => {
   assert.deepStrictEqual(U.parseHeaderString("a=1; b=has=equals; ; =orphan; c="), [
     { name: "a", value: "1" },

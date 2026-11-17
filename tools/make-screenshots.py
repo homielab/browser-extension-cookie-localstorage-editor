@@ -2,7 +2,7 @@
 """Compose Chrome Web Store screenshots from real popup captures.
 
 The Chrome Web Store wants 1280x800 or 640x400 images. A bare screenshot of a
-780px popup looks lost at that size, so each capture is placed on a framed
+480px popup looks lost at that size, so each capture is placed on a framed
 background with a caption, sized to fit.
 
 Usage:  python3 tools/make-screenshots.py <captures-dir> <output-dir>

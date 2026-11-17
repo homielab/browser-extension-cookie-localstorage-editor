@@ -103,3 +103,24 @@ test("parseImport explains what it could not read", () => {
   assert.match(S.parseImport('"text"').error, /JSON object/);
   assert.match(S.parseImport("{}").error, /no items/);
 });
+
+test("parsePairs reads key=value lines, splitting on the first =", () => {
+  assert.deepStrictEqual(S.parsePairs("a=1\n\n b = x=y \r\nc="), [entry("a", "1"), entry("b", " x=y"), entry("c", "")]);
+  assert.deepStrictEqual(S.parsePairs("a=1\na=2"), [entry("a", "2")]);
+});
+
+test("parsePairs takes a value that runs over several lines as one pair", () => {
+  assert.deepStrictEqual(S.parsePairs('cfg={\n  "a": 1\n}'), [entry("cfg", '{\n  "a": 1\n}')]);
+});
+
+test("parsePairs finds nothing in text without a key", () => {
+  assert.deepStrictEqual(S.parsePairs("plain"), []);
+  assert.deepStrictEqual(S.parsePairs("=orphan"), []);
+  assert.deepStrictEqual(S.parsePairs("two\nlines=1"), []);
+  assert.deepStrictEqual(S.parsePairs(""), []);
+});
+
+test("parseImport reads key=value lines as well as JSON", () => {
+  assert.deepStrictEqual(S.parseImport("theme=dark\nlang=en").entries, [entry("theme", "dark"), entry("lang", "en")]);
+  assert.ok(S.parseImport("plain text").error);
+});

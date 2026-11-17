@@ -86,15 +86,50 @@
     return JSON.stringify(object, null, 2);
   }
 
+  /** `key=value` split on the first `=`, or null without a key. */
+  function splitPair(text) {
+    const separator = text.indexOf("=");
+    if (separator <= 0) return null;
+    const key = text.slice(0, separator).trim();
+    return key ? { key, value: text.slice(separator + 1) } : null;
+  }
+
   /**
-   * Read a pasted JSON object back into entries. Values that are not strings
-   * (an object pasted by hand, a number) are stored as their JSON text, which
-   * is what the page would have had to do itself.
+   * Read `key=value` text: one pair per line, or a single pair whose value
+   * runs over several lines. A key given twice keeps its last value.
+   * @returns {Array<{key: string, value: string}>} empty if it is neither
+   */
+  function parsePairs(text) {
+    const source = String(text || "").trim();
+    const lines = source
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    let pairs = lines.map(splitPair);
+    if (!pairs.length || pairs.some((pair) => !pair)) {
+      const single = splitPair(source);
+      pairs = single && !/[\r\n]/.test(single.key) ? [single] : [];
+    }
+    const byKey = new Map();
+    for (const pair of pairs) byKey.set(pair.key, pair);
+    return Array.from(byKey.values());
+  }
+
+  /**
+   * Read pasted text back into entries: a JSON object, or `key=value` lines.
+   * JSON values that are not strings (an object pasted by hand, a number) are
+   * stored as their JSON text, which is what the page would have had to do
+   * itself.
    * @returns {{entries: Array<{key: string, value: string}>}|{error: string}}
    */
   function parseImport(text) {
     const source = String(text || "").trim();
     if (!source) return { error: "There is nothing to import." };
+    if (source[0] !== "{" && source[0] !== "[") {
+      const entries = parsePairs(source);
+      if (entries.length) return { entries };
+      return { error: "Expected a JSON object of keys and values, or key=value lines." };
+    }
     let parsed;
     try {
       parsed = JSON.parse(source);
@@ -120,6 +155,7 @@
     isJson,
     matchesFilter,
     parseImport,
+    parsePairs,
     sameEntries,
     serializeEntries,
     toEntries,

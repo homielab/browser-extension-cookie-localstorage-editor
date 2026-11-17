@@ -36,9 +36,14 @@ storage**, each with its count; switch with a click or <kbd>1</kbd> /
 | Add             | **Add cookie** / **Add item**, or <kbd>N</kbd>                              |
 | Delete          | The bin icon on a row, or **Delete all** for the whole site; both ask first |
 | Filter          | Type in the search box, or <kbd>/</kbd>; <kbd>Esc</kbd> clears it           |
-| Copy a value    | The copy icon on a row                                                      |
+| Copy            | The copy icons on a row: the value alone, or `name=value`                   |
+| Quick import    | Copy `name=value`, then <kbd>Ctrl</kbd>+<kbd>V</kbd> on the popup           |
 | Import / export | **Import / export**, or <kbd>E</kbd> / <kbd>I</kbd>                         |
 | Close           | <kbd>Esc</kbd>                                                              |
+
+Pasting `name=value` onto the popup, or into the name of a new cookie or item,
+opens it filled in, ready to add; several pairs open in the import panel
+instead. Nothing is written until you confirm.
 
 ### Cookies
 
@@ -67,7 +72,7 @@ The list shows the page's `localStorage` by key, with each item's size and a
 - **Format JSON** switches a value between indented and one line.
 - Renaming a key moves the item rather than copying it.
 - **Export** is a JSON object of keys and values; **Import** merges one back,
-  or replaces everything when _Replace_ is ticked.
+  or `key=value` lines, or replaces everything when _Replace_ is ticked.
 - Writes are all or nothing: if the site's storage quota runs out part way,
   the page is left as it was. A write is refused if the tab has moved to
   another site since it was read.

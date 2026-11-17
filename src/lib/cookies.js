@@ -556,11 +556,15 @@
 
   /**
    * Split a header string such as `a=1; b=2` into name/value pairs. Values may
-   * contain `=`; only the first one separates.
+   * contain `=`; only the first one separates. A leading `Cookie:`, as copied
+   * from a request, is ignored.
    */
   function parseHeaderString(text) {
     const cookies = [];
-    for (const part of String(text).split(";")) {
+    const source = String(text)
+      .trim()
+      .replace(/^cookie:\s*/i, "");
+    for (const part of source.split(";")) {
       const pair = part.trim();
       if (!pair) continue;
       const separator = pair.indexOf("=");

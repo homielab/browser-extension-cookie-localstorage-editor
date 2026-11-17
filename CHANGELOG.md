@@ -6,6 +6,22 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Copy a cookie or a local storage item as `name=value` from its row.
+- Quick import: paste `name=value` onto the popup, or into the name of a new
+  cookie or item, to open it filled in and ready to add. Several pairs open in
+  the import panel, set to add rather than replace.
+- Local storage import also reads `key=value` lines, and cookie import ignores
+  a leading `Cookie:`.
+
+### Changed
+
+- The popup is narrower: 480px wide instead of 780px.
+- A form's own button is the only filled button while it is open, and reads
+  **Add cookie** or **Add item** for a new one. The footer's **Add** button is
+  off until the form is closed, so the two can no longer be confused.
+
 ## [1.0.0] — 2026-10-09
 
 First public release.

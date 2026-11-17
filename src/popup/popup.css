@@ -68,7 +68,7 @@ body {
 }
 
 body {
-  width: 780px;
+  width: 480px;
   max-width: 100%;
   /* Deliberately no height constraint. The browser sizes the popup from this
      document, so tying the height to the viewport (100vh) is circular: during

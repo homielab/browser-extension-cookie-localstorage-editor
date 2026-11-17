@@ -26,6 +26,11 @@
           d="M9 9h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2ZM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
         />
       </symbol>
+      <symbol id="i-copy-pair" viewBox="0 0 24 24">
+        <path
+          d="M9 9h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2ZM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1M11.5 14h6M11.5 17.5h6"
+        />
+      </symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
       <symbol id="i-search" viewBox="0 0 24 24">
@@ -209,17 +214,16 @@
       </section>
 
       <footer class="foot">
-        <button type="button" class="btn primary" id="add">
+        <button type="button" class="btn primary" id="add" title="Add a cookie (N)">
           <svg class="icon"><use href="#i-plus" /></svg>
           Add cookie
         </button>
-        <button type="button" class="btn ghost" id="transfer">
+        <button type="button" class="btn ghost" id="transfer" title="Export (E) or import (I)">
           <svg class="icon"><use href="#i-transfer" /></svg>
           Import / export
         </button>
-        <p class="hints">
-          <kbd>/</kbd> filter <span class="sep">·</span> <kbd>N</kbd> new <span class="sep">·</span> <kbd>E</kbd> export
-          <span class="sep">·</span> <kbd>I</kbd> import <span class="sep">·</span> <kbd>Ctrl</kbd>+<kbd>S</kbd> save
+        <p class="hints" title="/ filter · N new · E export · I import · Ctrl+S save · Ctrl+V paste name=value">
+          <kbd>Ctrl</kbd>+<kbd>V</kbd> paste name=value
         </p>
       </footer>
     </section>
@@ -297,7 +301,7 @@
           <textarea
             id="storage-import-text"
             class="panel-text"
-            placeholder='Paste a JSON object of keys and values, such as {"theme": "dark", "lang": "en"}'
+            placeholder='Paste a JSON object such as {"theme": "dark", "lang": "en"}, or key=value lines'
             spellcheck="false"
             wrap="off"
           ></textarea>
@@ -315,17 +319,16 @@
       </section>
 
       <footer class="foot">
-        <button type="button" class="btn primary" id="storage-add">
+        <button type="button" class="btn primary" id="storage-add" title="Add an item (N)">
           <svg class="icon"><use href="#i-plus" /></svg>
           Add item
         </button>
-        <button type="button" class="btn ghost" id="storage-transfer">
+        <button type="button" class="btn ghost" id="storage-transfer" title="Export (E) or import (I)">
           <svg class="icon"><use href="#i-transfer" /></svg>
           Import / export
         </button>
-        <p class="hints">
-          <kbd>/</kbd> filter <span class="sep">·</span> <kbd>N</kbd> new <span class="sep">·</span> <kbd>E</kbd> export
-          <span class="sep">·</span> <kbd>I</kbd> import <span class="sep">·</span> <kbd>Ctrl</kbd>+<kbd>S</kbd> save
+        <p class="hints" title="/ filter · N new · E export · I import · Ctrl+S save · Ctrl+V paste key=value">
+          <kbd>Ctrl</kbd>+<kbd>V</kbd> paste key=value
         </p>
       </footer>
     </section>
@@ -362,6 +365,15 @@
             </div>
           </div>
           <div class="row-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              data-act="copy-pair"
+              title="Copy name=value"
+              aria-label="Copy name=value"
+            >
+              <svg class="icon"><use href="#i-copy-pair" /></svg>
+            </button>
             <button type="button" class="icon-btn" data-act="copy" title="Copy value" aria-label="Copy value">
               <svg class="icon"><use href="#i-copy" /></svg>
             </button>
@@ -394,7 +406,14 @@
         <div class="grid">
           <div class="field span-2">
             <label for="f-name">Name</label>
-            <input id="f-name" data-field="name" type="text" autocomplete="off" spellcheck="false" />
+            <input
+              id="f-name"
+              data-field="name"
+              type="text"
+              placeholder="name, or paste name=value"
+              autocomplete="off"
+              spellcheck="false"
+            />
             <p class="msg" data-msg="name"></p>
           </div>
 
@@ -480,7 +499,7 @@
           <button type="button" class="btn ghost" data-act="close">Cancel</button>
           <button type="submit" class="btn primary">
             <svg class="icon"><use href="#i-check" /></svg>
-            Save
+            <span data-submit-label>Save</span>
           </button>
         </div>
       </form>
@@ -498,6 +517,15 @@
             <div class="row-value"></div>
           </div>
           <div class="row-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              data-act="copy-pair"
+              title="Copy key=value"
+              aria-label="Copy key=value"
+            >
+              <svg class="icon"><use href="#i-copy-pair" /></svg>
+            </button>
             <button type="button" class="icon-btn" data-act="copy" title="Copy value" aria-label="Copy value">
               <svg class="icon"><use href="#i-copy" /></svg>
             </button>
@@ -530,7 +558,14 @@
         <div class="grid">
           <div class="field span-2">
             <label for="s-key">Key</label>
-            <input id="s-key" data-field="key" type="text" autocomplete="off" spellcheck="false" />
+            <input
+              id="s-key"
+              data-field="key"
+              type="text"
+              placeholder="key, or paste key=value"
+              autocomplete="off"
+              spellcheck="false"
+            />
             <p class="msg" data-msg="key"></p>
           </div>
 
@@ -566,7 +601,7 @@
           <button type="button" class="btn ghost" data-act="close">Cancel</button>
           <button type="submit" class="btn primary">
             <svg class="icon"><use href="#i-check" /></svg>
-            Save
+            <span data-submit-label>Save</span>
           </button>
         </div>
       </form>

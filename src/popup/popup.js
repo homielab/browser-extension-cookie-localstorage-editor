@@ -70,6 +70,8 @@
     pendingAccess: null,
     /** @type {{tab: "export"|"import"}|null} the open import/export panel */
     transfer: null,
+    /** Whether there is a site, and nothing running, for the footer buttons to act on. */
+    actionsEnabled: false,
     busy: false,
   };
 
@@ -95,6 +97,7 @@
     openPanel: (tab) => openPanel(tab),
     askDeleteAll: () => askDeleteAll(),
     save: () => saveEditor(),
+    paste: (text) => pasteText(text),
     hasEditor: () => Boolean(state.editor),
     escape() {
       if (state.transfer) return (closePanel(), true);
@@ -173,7 +176,7 @@
     });
     dom.notice.addEventListener("click", hideNotice);
 
-    dom.add.addEventListener("click", openCreate);
+    dom.add.addEventListener("click", () => openCreate());
     dom.transfer.addEventListener("click", () => togglePanel());
     // Re-read the tab as well as the cookies: that is what rescues the popup after
     // navigating away from a page that cannot have cookies.
@@ -219,8 +222,10 @@
     dom.list.addEventListener("input", onEditorInput);
     dom.list.addEventListener("change", onEditorChange);
     dom.list.addEventListener("submit", onEditorSubmit);
+    dom.list.addEventListener("paste", onEditorPaste);
 
     document.addEventListener("keydown", onGlobalKeydown);
+    document.addEventListener("paste", onGlobalPaste);
   }
 
   function watchTab() {
@@ -410,9 +415,22 @@
 
   /** Toggle the toolbar actions that need a site (and an idle popup). */
   function setActionsEnabled(enabled) {
-    dom.add.disabled = !enabled;
+    state.actionsEnabled = enabled;
     dom.deleteAll.disabled = !enabled;
     dom.transfer.disabled = !enabled;
+    syncAddButton();
+  }
+
+  /**
+   * Keep one filled button on screen. While a form or the import panel is
+   * open, its own button is the one that submits, so "Add cookie" in the
+   * footer steps back; while a new cookie is being filled in it is off
+   * altogether, so it cannot be mistaken for the form's button.
+   */
+  function syncAddButton() {
+    const creating = Boolean(state.editor) && state.editor.mode === "create";
+    dom.add.classList.toggle("primary", !state.editor && !state.transfer);
+    dom.add.disabled = !state.actionsEnabled || creating;
   }
 
   /** Close everything that belongs to the site being shown. */
@@ -618,7 +636,10 @@
         case "close":
           return closeEditor();
         case "copy":
-          if (cookie) copyValue(cookie, action);
+          if (cookie) copyText(cookie.value, `Copied the value of “${cookie.name}”.`, action);
+          return;
+        case "copy-pair":
+          if (cookie) copyText(`${cookie.name}=${cookie.value}`, `Copied “${cookie.name}” as name=value.`, action);
           return;
         case "duplicate":
           if (cookie) duplicate(cookie);
@@ -691,6 +712,35 @@
     saveEditor();
   }
 
+  const pastedText = (event) => (event.clipboardData ? event.clipboardData.getData("text") : "");
+
+  /**
+   * Pasting `name=value` over the name of a new cookie fills in both. A name
+   * cannot contain `=`, so nothing else could have been meant.
+   */
+  function onEditorPaste(event) {
+    if (!editorForm || !state.editor || state.editor.mode !== "create") return;
+    const name = fieldOf(editorForm, "name");
+    if (event.target !== name) return;
+    if (name.selectionStart !== 0 || name.selectionEnd !== name.value.length) return;
+
+    const text = pastedText(event);
+    const pairs = U.parseHeaderString(text);
+    if (!pairs.length) return;
+    event.preventDefault();
+    if (pairs.length > 1) return reviewImport(text, pairs.length);
+    name.value = pairs[0].name;
+    fieldOf(editorForm, "value").value = pairs[0].value;
+    syncEditor(editorForm);
+  }
+
+  /** Ctrl+V on the popup itself, rather than into a field: quick import. */
+  function onGlobalPaste(event) {
+    if (isTypingTarget(event.target)) return;
+    const text = pastedText(event);
+    if (text.trim() && activeView().paste(text)) event.preventDefault();
+  }
+
   function onGlobalKeydown(event) {
     // Ctrl+S, or Ctrl+Enter from the value box: save without reaching for the mouse.
     const key = event.key.toLowerCase();
@@ -728,11 +778,43 @@
     focusField("value", true);
   }
 
-  function openCreate() {
+  /** Open a new cookie, filled in with `pair` ({name, value}) if given. */
+  function openCreate(pair) {
     if (!state.site) return;
-    startEditor({ mode: "create", cookie: null, key: null, draft: U.blankDraft(state.site, currentStoreId()) });
+    const draft = { ...U.blankDraft(state.site, currentStoreId()), ...pair };
+    startEditor({ mode: "create", cookie: null, key: null, draft });
     dom.list.scrollTop = 0;
+    // On the name, where Enter adds the cookie.
     focusField("name");
+  }
+
+  /**
+   * Quick import of text pasted onto the popup. One `name=value` opens a new
+   * cookie filled in, ready to add; anything longer goes to the import panel.
+   * Either way nothing is written until the user confirms.
+   * @returns {boolean} whether the paste was taken
+   */
+  function pasteText(text) {
+    if (!state.site || state.busy || state.editor) return false;
+    const parsed = U.parseImport(text, state.site);
+    if (parsed.error) {
+      showNotice("Paste name=value to add a cookie.", "neutral");
+      return true;
+    }
+    const only = parsed.format === "header" && parsed.entries.length === 1 && parsed.entries[0].draft;
+    if (only) openCreate({ name: only.name, value: only.value });
+    else reviewImport(text, parsed.entries.length);
+    return true;
+  }
+
+  /** Put pasted cookies in the import panel, set to add rather than replace. */
+  function reviewImport(text, count) {
+    closeEditor();
+    openPanel("import");
+    if (!state.transfer) return;
+    dom.importText.value = text.trim();
+    dom.importReplace.checked = false;
+    setImportNote(`Pasted ${pluralize(count, "cookie")}. Nothing is written until you press Import.`);
   }
 
   function duplicate(cookie) {
@@ -765,13 +847,16 @@
     editorForm = null;
     editorHolder = null;
     markOpenRow(null);
+    syncAddButton();
   }
 
   function mountEditor() {
     unmountEditor();
 
     editorForm = dom.editorTemplate.content.firstElementChild.cloneNode(true);
-    $(".editor-title", editorForm).textContent = state.editor.mode === "create" ? "New cookie" : "Edit cookie";
+    const creating = state.editor.mode === "create";
+    $(".editor-title", editorForm).textContent = creating ? "New cookie" : "Edit cookie";
+    $("[data-submit-label]", editorForm).textContent = creating ? "Add cookie" : "Save";
 
     // Nothing to delete or duplicate while creating.
     for (const act of editorForm.querySelectorAll('[data-act="delete"], [data-act="duplicate"]')) {
@@ -790,6 +875,7 @@
       editorHolder.append(editorForm);
       dom.list.prepend(editorHolder);
     }
+    syncAddButton();
   }
 
   function markOpenRow(key) {
@@ -995,7 +1081,8 @@
         await Api.setCookie(details);
       }
 
-      state.editor = null;
+      // Close the form here: a save that changed nothing does not rebuild the list.
+      closeEditor();
       showNotice("Cookie saved.", "ok");
       await refreshCookies();
     } catch (error) {
@@ -1046,10 +1133,10 @@
     }
   }
 
-  async function copyValue(cookie, button) {
+  async function copyText(text, done, button) {
     try {
-      await navigator.clipboard.writeText(cookie.value);
-      showNotice(`Copied the value of “${cookie.name}”.`, "ok");
+      await navigator.clipboard.writeText(text);
+      showNotice(done, "ok");
       if (button) flashDone(button);
     } catch (_) {
       showNotice("The clipboard is not available here.", "error");
@@ -1126,6 +1213,7 @@
     dom.panel.hidden = false;
     dom.body.classList.add("panel-open");
     dom.transfer.classList.add("on");
+    syncAddButton();
     showPanel(tab);
   }
 
@@ -1155,6 +1243,7 @@
     dom.panel.hidden = true;
     dom.body.classList.remove("panel-open");
     dom.transfer.classList.remove("on");
+    syncAddButton();
   }
 
   function renderExport() {
