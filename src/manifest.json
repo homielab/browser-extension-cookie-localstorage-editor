@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Cookie & LocalStorage Editor by HomieLab",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homepage_url": "https://homielab.com",
   "description": "Quick edit cookies and localStorage of the current site: view, add, delete, import and export as JSON. No tracking.",
 
