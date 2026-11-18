@@ -31,11 +31,13 @@ FONT_CANDIDATES = (
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
     "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+    "/System/Library/Fonts/Supplemental/Verdana.ttf",
 )
 FONT_BOLD_CANDIDATES = (
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Verdana Bold.ttf",
 )
 
 # (source capture, output name, theme, title, subtitle). The store takes at
